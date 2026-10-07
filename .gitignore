@@ -1,0 +1,4 @@
+/Backend/models/*
+/notebooks/.ipynb_checkpoints/*
+/notebooks/model.pkl
+/notebooks/preprocessor.pkl
