@@ -1,16 +1,9 @@
-from fastapi import FastAPI 
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel ,Field 
+from pydantic import BaseModel ,Field ,field_validator
 from typing import Annotated ,Literal 
-import pickle
-import pandas as pd
-
-app = FastAPI()
-preprocessor = pickle.load(open("models/preprocessor.pkl", "rb"))
-model = pickle.load(open("models/model.pkl", "rb"))
 
 
 class House(BaseModel):
+
     City : Annotated[Literal["Hyderabad" , "Bangalore","Pune" ,"Mumbai"],Field(...,description="city of the user from Hyderabad Bangalore Pune  Mumbai")]
     Locality_Tier : Annotated[Literal["Mid", "Budget" ,"Premium"] ,Field(...,description="locality tier of the house ")]
     Furnishing : Annotated[Literal["Semi-Furnished" , "Unfurnished" ,"Fully-Furnished"],Field(...,description="furnishing status of the house")]
@@ -30,14 +23,10 @@ class House(BaseModel):
     Nearby_Hospital_km: Annotated[float, Field(..., ge=0, description="distance to nearby hospital in kilometers")]
     Crime_Rate_Index: Annotated[float, Field(..., ge=0, description="crime rate index of the locality")]
 
-
-@app.post("/predict")
-def Predict(input_data : House):
-    input_data = input_data.model_dump()
-
-    df = pd.DataFrame([input_data])
-    trans_data = preprocessor.transform(df)
-    predicted_value = model.predict(trans_data)[0]
-
-    return JSONResponse(content={"predicted_price": predicted_value})
-
+    @field_validator("City")
+    def validate_city(cls, value) -> str:
+        value = value.strip().title()
+        if value not in ["Hyderabad", "Bangalore", "Pune", "Mumbai"]:
+            raise ValueError("City must be one of Hyderabad, Bangalore, Pune, or Mumbai")
+        return value
+    
